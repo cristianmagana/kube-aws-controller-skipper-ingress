@@ -1,0 +1,5 @@
+skipper:
+  controllerImage: registry.opensource.zalan.do/teapot/kube-ingress-aws-controller:v0.14.11
+  skipperIngressImage: registry.opensource.zalan.do/teapot/skipper:v0.15.39
+  skipperIngressImageVersion: v0.15.39
+  awsRegion: us-east-1

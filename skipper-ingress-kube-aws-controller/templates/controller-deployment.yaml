@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kube-ingress-aws-controller
+  namespace: kube-system
+  labels:
+    application: kube-ingress-aws-controller
+    component: ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      application: kube-ingress-aws-controller
+      component: ingress
+  template:
+    metadata:
+      labels:
+        application: kube-ingress-aws-controller
+        component: ingress
+    spec:
+      serviceAccountName: kube-ingress-aws
+      containers:
+      - name: controller
+        image: {{ .Values.skipper.controllerImage }}
+        env:
+        - name: AWS_REGION
+          value: {{ .Values.skipper.awsRegion }}
+        args:
+          - "--ip-addr-type=ipv4"
+          - "--ingress-api-version=networking.k8s.io/v1"
+          - "--target-access-mode=AWSCNI"
+          - "--target-cni-namespace=kube-system"
+          - "--target-cni-pod-labelselector=application=skipper-ingress"
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kube-ingress-aws
+  namespace: kube-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ingress-controller
+rules:
+- apiGroups:
+  - networking.k8s.io
+  - ""
+  resources:
+  - ingresses
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses/status
+  verbs:
+  - patch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - zalando.org
+  resources:
+  - routegroups
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - zalando.org
+  resources:
+  - routegroups/status
+  verbs:
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: ingress-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: ingress-controller
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: kube-system
+- kind: ServiceAccount
+  name: default
+  namespace: default
+- kind: ServiceAccount
+  name: kube-ingress-aws
+  namespace: kube-system

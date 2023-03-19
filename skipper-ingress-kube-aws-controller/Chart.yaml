@@ -1,0 +1,8 @@
+apiVersion: v1
+description: Deploy kube-ingress-aws-controller and skipper ingress for kubernetes
+keywords:
+- skipper
+- ingress
+- kube-aws-controller
+name: skipper-ingress
+version: 1.0.0
